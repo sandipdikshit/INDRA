@@ -36,20 +36,161 @@
   --radius-sm: 10px;
   --shadow: 0 1px 4px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.06);
   --shadow-hover: 0 8px 28px rgba(0,0,0,0.12);
+  --agent-bar-h: 34px;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
   font-family: 'DM Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
-  height: 100vh;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── LAYOUT ── */
-.platform { display: flex; height: 100vh; }
+/* ══════════════════════════════════
+   NEXUS AGENT CYCLE STATUS BAR
+══════════════════════════════════ */
+#agent-bar {
+  height: var(--agent-bar-h);
+  min-height: var(--agent-bar-h);
+  background: linear-gradient(90deg, #0A0A1A 0%, #111827 50%, #0A0A1A 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 200;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+#agent-bar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(48,209,88,0.06), transparent);
+  animation: bar-sweep 4s infinite;
+}
+@keyframes bar-sweep { 0%{left:-100%} 100%{left:200%} }
+#agent-bar:hover { background: linear-gradient(90deg, #0D1321 0%, #162032 50%, #0D1321 100%); }
+.agent-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #30D158;
+  box-shadow: 0 0 8px rgba(48,209,88,0.8);
+  animation: agent-pulse 1.8s infinite;
+  flex-shrink: 0;
+}
+@keyframes agent-pulse {
+  0%,100% { opacity: 1; box-shadow: 0 0 8px rgba(48,209,88,0.8); }
+  50% { opacity: 0.6; box-shadow: 0 0 4px rgba(48,209,88,0.4); }
+}
+.agent-bar-text {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.agent-bar-text strong {
+  color: #30D158;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+.agent-bar-divider {
+  width: 1px; height: 12px;
+  background: rgba(255,255,255,0.12);
+  margin: 0 4px;
+}
+.agent-bar-sep {
+  color: rgba(255,255,255,0.25);
+  font-size: 10px;
+  margin: 0 2px;
+}
 
-/* ── SIDEBAR ── */
+/* ══════════════════════════════════
+   AGENT CYCLE MODAL
+══════════════════════════════════ */
+#agent-modal {
+  display: none;
+  position: fixed;
+  top: var(--agent-bar-h);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  background: #0D1321;
+  border: 1px solid rgba(48,209,88,0.25);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  padding: 20px 22px;
+  z-index: 999;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: modal-drop 0.2s ease;
+}
+@keyframes modal-drop { from { opacity:0; transform:translateX(-50%) translateY(-8px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+#agent-modal.visible { display: block; }
+.agent-modal-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  color: white;
+  letter-spacing: 0.3px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agent-trace-line {
+  font-family: 'DM Sans', monospace;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.6);
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.5;
+}
+.agent-trace-line .trace-icon {
+  font-size: 11px;
+  width: 16px;
+  flex-shrink: 0;
+}
+.agent-trace-line.done { color: #30D158; }
+.agent-trace-line.warn { color: #FF9F0A; }
+.agent-modal-footer {
+  margin-top: 12px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.25);
+  display: flex;
+  justify-content: space-between;
+}
+#agent-modal-close {
+  position: absolute;
+  top: 14px; right: 16px;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.14s;
+}
+#agent-modal-close:hover { color: rgba(255,255,255,0.8); }
+
+/* ══════════════════════════════════
+   LAYOUT
+══════════════════════════════════ */
+.platform { display: flex; flex: 1; overflow: hidden; }
+
+/* ══════════════════════════════════
+   SIDEBAR
+══════════════════════════════════ */
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
@@ -135,6 +276,18 @@ body {
 .up { color: var(--green); }
 .down { color: var(--red); }
 
+/* Portfolio mini-widget in sidebar */
+.sidebar-portfolio {
+  margin: 6px 10px 8px;
+  padding: 10px 12px;
+  background: rgba(0,113,227,0.06);
+  border-radius: 10px;
+  border: 1px solid rgba(0,113,227,0.15);
+}
+.sidebar-portfolio-label { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text3); font-weight: 700; margin-bottom: 5px; }
+.sidebar-portfolio-val { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--blue); letter-spacing: -0.5px; }
+.sidebar-portfolio-sub { font-size: 9.5px; color: var(--text2); margin-top: 2px; }
+
 .sidebar-bottom {
   margin-top: auto;
   padding: 12px 10px;
@@ -158,7 +311,7 @@ body {
 .user-role { font-size: 9.5px; color: var(--text3); }
 
 /* ── MAIN ── */
-.main { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.main { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
 .main::-webkit-scrollbar { width: 4px; }
 .main::-webkit-scrollbar-track { background: transparent; }
 .main::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
@@ -219,7 +372,7 @@ body {
 }
 
 /* ── PAGES ── */
-.page { padding: 24px 26px 40px; }
+.page { padding: 24px 26px 60px; }
 .page { animation: fadeIn 0.2s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -228,7 +381,9 @@ body {
   background: white; border-radius: var(--radius);
   padding: 18px 20px; border: 1px solid var(--border);
   box-shadow: var(--shadow);
+  transition: box-shadow 0.2s, transform 0.2s;
 }
+.card:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
 .card-title {
   font-family: 'Syne', sans-serif; font-weight: 700;
   font-size: 13.5px; letter-spacing: -0.3px; margin-bottom: 3px;
@@ -304,12 +459,18 @@ body {
 }
 .btn-primary { background: var(--blue); color: white; padding: 8px 16px; font-size: 12.5px; }
 .btn-primary:hover { background: #005BBE; }
+.btn-primary:active { transform: scale(0.97); }
 .btn-ghost {
   background: white; color: var(--text2); padding: 7px 14px; font-size: 12.5px;
   border: 1px solid var(--border); box-shadow: var(--shadow);
 }
 .btn-ghost:hover { background: var(--bg); }
 .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+.btn-owned {
+  background: var(--green-bg); color: #059669; border: 1px solid rgba(48,209,88,0.3);
+  padding: 6px 12px; font-size: 11px; border-radius: 8px;
+  cursor: default;
+}
 
 /* ── BADGES ── */
 .badge {
@@ -323,6 +484,7 @@ body {
 .badge.pending { background: rgba(142,142,147,0.12); color: #6E6E73; }
 .badge.new { background: rgba(191,90,242,0.12); color: var(--purple); }
 .badge.hot { background: rgba(255,69,58,0.12); color: var(--red); }
+.badge.owned { background: rgba(48,209,88,0.12); color: #059669; border: 1px solid rgba(48,209,88,0.2); }
 
 .tag {
   display: inline-flex; align-items: center;
@@ -380,20 +542,16 @@ body {
 .ai-banner::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 300px;
-  height: 300px;
+  top: -50%; right: -10%;
+  width: 300px; height: 300px;
   background: radial-gradient(circle, rgba(191,90,242,0.25) 0%, transparent 70%);
   pointer-events: none;
 }
 .ai-banner::after {
   content: '';
   position: absolute;
-  bottom: -30%;
-  left: 20%;
-  width: 200px;
-  height: 200px;
+  bottom: -30%; left: 20%;
+  width: 200px; height: 200px;
   background: radial-gradient(circle, rgba(0,113,227,0.2) 0%, transparent 70%);
   pointer-events: none;
 }
@@ -406,6 +564,30 @@ body {
 }
 .ai-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.8px; margin-bottom: 8px; }
 .ai-sub { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.6; max-width: 540px; }
+
+/* ── AI THINKING TRACE ── */
+.ai-thinking {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.03);
+  border-radius: 8px;
+  border-left: 2px solid rgba(0,113,227,0.3);
+}
+.ai-thinking-line {
+  font-size: 11px; color: var(--text3); font-weight: 500;
+  display: flex; align-items: center; gap: 7px;
+  opacity: 0;
+  transition: opacity 0.4s, color 0.4s;
+}
+.ai-thinking-line.visible { opacity: 1; }
+.ai-thinking-line.done { color: #059669; }
+.thinking-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--blue); flex-shrink: 0;
+  animation: thinking-blink 0.8s infinite;
+}
+.ai-thinking-line.done .thinking-dot { background: var(--green); animation: none; }
+@keyframes thinking-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
 /* ── MARKET RESEARCH PANEL ── */
 .research-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
@@ -423,10 +605,7 @@ body {
   display: flex; gap: 16px; padding: 16px 0;
   border-bottom: 1px solid rgba(0,0,0,0.04);
 }
-.roadmap-year {
-  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px;
-  color: var(--blue); min-width: 52px;
-}
+.roadmap-year { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px; color: var(--blue); min-width: 52px; }
 .roadmap-content { flex: 1; }
 .roadmap-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
 .roadmap-desc { font-size: 12px; color: var(--text2); line-height: 1.55; }
@@ -482,9 +661,160 @@ body {
 .pill-red { background: var(--red-bg); color: var(--red); }
 
 div.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ══════════════════════════════════
+   TOAST NOTIFICATIONS
+══════════════════════════════════ */
+#toast-container {
+  position: fixed;
+  top: calc(var(--agent-bar-h) + 16px);
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: white;
+  border-radius: 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 320px;
+  pointer-events: all;
+  animation: toast-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  overflow: hidden;
+}
+.toast::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--green);
+}
+.toast.success::before { background: var(--green); }
+.toast.info::before { background: var(--blue); }
+.toast-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--green-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.toast-title { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+.toast-msg { font-size: 11.5px; color: var(--text2); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(24px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+.toast-out { animation: toast-out 0.25s ease forwards; }
+@keyframes toast-out {
+  to { opacity: 0; transform: translateX(24px); }
+}
+
+/* ══════════════════════════════════
+   PERSISTENT COPYRIGHT FOOTER
+══════════════════════════════════ */
+#nexus-footer {
+  position: fixed;
+  bottom: 10px;
+  right: 16px;
+  z-index: 999;
+  font-size: 9.5px;
+  color: rgba(0,0,0,0.3);
+  letter-spacing: 0.3px;
+  pointer-events: none;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ══════════════════════════════════
+   MARKETPLACE SIGNAL CARDS
+══════════════════════════════════ */
+.mkt-signal-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.mkt-signal-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.12); transform: translateY(-2px); }
+.mkt-signal-card.is-owned { border-color: rgba(48,209,88,0.3); background: linear-gradient(135deg, white, #F0FDF4); }
+
+/* ══════════════════════════════════
+   BUY BUTTON STATES
+══════════════════════════════════ */
+.buy-btn-wrap { position: relative; }
+.buy-btn-loading {
+  display: flex; align-items: center; gap: 5px;
+}
+.spinner {
+  width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Count-up animation glow */
+.count-up-flash {
+  animation: stat-flash 0.6s ease;
+}
+@keyframes stat-flash {
+  0% { color: inherit; }
+  40% { color: var(--green); text-shadow: 0 0 12px rgba(48,209,88,0.5); }
+  100% { color: inherit; }
+}
 </style>
 </head>
 <body>
+
+<!-- ═══ NEXUS AGENT CYCLE STATUS BAR ═══ -->
+<div id="agent-bar" onclick="toggleAgentModal()">
+  <div class="agent-dot"></div>
+  <span class="agent-bar-text"><strong>NEXUS Agent Cycle</strong></span>
+  <div class="agent-bar-divider"></div>
+  <span class="agent-bar-text">Last run <strong id="agent-last-run">8 min ago</strong></span>
+  <span class="agent-bar-sep">•</span>
+  <span class="agent-bar-text"><strong>12 signals</strong> refreshed</span>
+  <span class="agent-bar-sep">•</span>
+  <span class="agent-bar-text"><strong style="color:#FF9F0A">2 rotation opportunities</strong> detected</span>
+  <span class="agent-bar-sep">•</span>
+  <span class="agent-bar-text" style="color:rgba(255,255,255,0.4);font-size:9.5px">↑ click to view trace</span>
+</div>
+
+<!-- ═══ AGENT MODAL ═══ -->
+<div id="agent-modal">
+  <div id="agent-modal-close" onclick="toggleAgentModal()">✕</div>
+  <div class="agent-modal-title">
+    <div class="agent-dot" style="width:8px;height:8px"></div>
+    NEXUS Agent Cycle — Latest Run
+  </div>
+  <div class="agent-trace-line done"><span class="trace-icon">✓</span> Initializing signal ingestion across 47 active feeds… <em style="margin-left:auto;font-size:10px;opacity:0.6">done</em></div>
+  <div class="agent-trace-line done"><span class="trace-icon">✓</span> Ingesting DPI layer (UPI, GST, ONDC, AA)… <em style="margin-left:auto;font-size:10px;opacity:0.6">done</em></div>
+  <div class="agent-trace-line done"><span class="trace-icon">✓</span> Decay analysis on 214 signal-day pairs… <em style="margin-left:auto;font-size:10px;opacity:0.6">7 decaying</em></div>
+  <div class="agent-trace-line done"><span class="trace-icon">✓</span> Cross-referencing UPI + GST + satellite imagery… <em style="margin-left:auto;font-size:10px;opacity:0.6">done</em></div>
+  <div class="agent-trace-line warn"><span class="trace-icon">⚠</span> SEBI Circular SEBI/HO/MRD/2025-01 parsed — 3 signals affected<em style="margin-left:auto;font-size:10px;opacity:0.6">action req.</em></div>
+  <div class="agent-trace-line done"><span class="trace-icon">✓</span> Portfolio rotation analysis computed… <em style="margin-left:auto;font-size:10px;opacity:0.6">2 swaps ready</em></div>
+  <div class="agent-trace-line done"><span class="trace-icon">✓</span> AI Copilot context refreshed with latest data snapshot<em style="margin-left:auto;font-size:10px;opacity:0.6">done</em></div>
+  <div class="agent-modal-footer">
+    <span>Cycle completed in 4.2s &nbsp;·&nbsp; Next run in ~22 min</span>
+    <span>Agent v2.4.1</span>
+  </div>
+</div>
+
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div id="toast-container"></div>
+
+<!-- ═══ PLATFORM ═══ -->
 <div class="platform">
 
 <!-- ═══ SIDEBAR ═══ -->
@@ -549,6 +879,13 @@ div.divider { height: 1px; background: var(--border); margin: 16px 0; }
     <div class="market-row">UPI Vol Today: <span class="up">₹34.2B</span></div>
   </div>
 
+  <!-- Live portfolio widget -->
+  <div class="sidebar-portfolio">
+    <div class="sidebar-portfolio-label">My Portfolio</div>
+    <div class="sidebar-portfolio-val" id="sb-portfolio-val">₹0</div>
+    <div class="sidebar-portfolio-sub" id="sb-portfolio-sub">0 signals owned</div>
+  </div>
+
   <div class="sidebar-bottom">
     <div class="user-chip">
       <div class="avatar">AK</div>
@@ -583,7 +920,58 @@ div.divider { height: 1px; background: var(--border); margin: 16px 0; }
 </div>
 </div>
 
+<!-- ═══ COPYRIGHT FOOTER ═══ -->
+<div id="nexus-footer">© Sandip Dixit 2026 &nbsp;•&nbsp; Prototype — Idea Stage</div>
+
 <script>
+// ════════════════════════════════════════════
+//  NS — NEXUS STATE (localStorage-persisted)
+// ════════════════════════════════════════════
+const NS = {
+  state: {
+    boughtSignals: [],
+    totalRevenue: 0,
+    portfolioValue: 0
+  },
+  load() {
+    try {
+      const s = localStorage.getItem('nexus_state_v2');
+      if (s) this.state = JSON.parse(s);
+    } catch(e) {}
+    return this;
+  },
+  save() {
+    try { localStorage.setItem('nexus_state_v2', JSON.stringify(this.state)); } catch(e) {}
+  },
+  buySignal(id, price) {
+    if (this.owns(id)) return false;
+    this.state.boughtSignals.push(id);
+    this.state.totalRevenue += price;
+    this.state.portfolioValue += price * 1.142; // projected with alpha
+    this.save();
+    this.updateSidebarWidget();
+    return true;
+  },
+  owns(id) { return this.state.boughtSignals.includes(id); },
+  updateSidebarWidget() {
+    const pv = this.state.portfolioValue;
+    const el = document.getElementById('sb-portfolio-val');
+    const sub = document.getElementById('sb-portfolio-sub');
+    if (el) {
+      const formatted = pv >= 100 ? `₹${(pv/100).toFixed(1)}Cr` : `₹${pv.toFixed(1)}L`;
+      el.textContent = formatted;
+      el.style.color = pv > 0 ? 'var(--blue)' : 'var(--text3)';
+    }
+    if (sub) sub.textContent = `${this.state.boughtSignals.length} signal${this.state.boughtSignals.length !== 1 ? 's' : ''} owned`;
+  },
+  reset() {
+    this.state = { boughtSignals: [], totalRevenue: 0, portfolioValue: 0 };
+    this.save();
+    this.updateSidebarWidget();
+  }
+};
+NS.load();
+
 // ─── DATA ───
 const gstData = [
   { month:'Aug', actual:62, expected:58 },
@@ -604,35 +992,35 @@ const upiData = [
 ];
 
 const signals = [
-  { id:1, name:'GST Revenue Surprise Index', category:'Macro', alpha:'+6.4%', decay:82, status:'live', buyers:34, provider:'GSTN Analytics' },
-  { id:2, name:'UPI Consumer Spend Layer', category:'Consumer', alpha:'+4.1%', decay:71, status:'live', buyers:28, provider:'PayFlow India' },
-  { id:3, name:'Cross-Broker Retail Sentiment', category:'Positioning', alpha:'+3.8%', decay:65, status:'live', buyers:19, provider:'BrokerNet' },
-  { id:4, name:'SEBI Circular Impact Score', category:'Regulatory', alpha:'+5.2%', decay:90, status:'live', buyers:41, provider:'RegPulse' },
-  { id:5, name:'F&O Smart Money Flow', category:'Derivatives', alpha:'+7.1%', decay:78, status:'live', buyers:52, provider:'NSE Quant' },
-  { id:6, name:'SCORES Complaint Velocity', category:'Governance', alpha:'+2.9%', decay:55, status:'warning', buyers:17, provider:'SEBI Mirror' },
-  { id:7, name:'Unlisted Co. Intelligence', category:'PE/VC', alpha:'+9.3%', decay:94, status:'live', buyers:23, provider:'MCA Parsed' },
-  { id:8, name:'India ESG Native Score', category:'ESG', alpha:'+1.8%', decay:41, status:'warning', buyers:11, provider:'GreenIndia' },
-  { id:9, name:'AA Framework Credit Signal', category:'Credit', alpha:'+5.8%', decay:87, status:'live', buyers:31, provider:'Sahamati AA' },
-  { id:10, name:'ONDC Merchant Flow Index', category:'Consumer', alpha:'+3.3%', decay:76, status:'live', buyers:24, provider:'ONDC Analytics' },
+  { id:1,  name:'GST Revenue Surprise Index',    category:'Macro',        alpha:'+6.4%', decay:82, status:'live',    buyers:34, provider:'GSTN Analytics', price:12.5 },
+  { id:2,  name:'UPI Consumer Spend Layer',       category:'Consumer',     alpha:'+4.1%', decay:71, status:'live',    buyers:28, provider:'PayFlow India',   price:8.4  },
+  { id:3,  name:'Cross-Broker Retail Sentiment',  category:'Positioning',  alpha:'+3.8%', decay:65, status:'live',    buyers:19, provider:'BrokerNet',        price:6.2  },
+  { id:4,  name:'SEBI Circular Impact Score',     category:'Regulatory',   alpha:'+5.2%', decay:90, status:'live',    buyers:41, provider:'RegPulse',         price:15.0 },
+  { id:5,  name:'F&O Smart Money Flow',           category:'Derivatives',  alpha:'+7.1%', decay:78, status:'live',    buyers:52, provider:'NSE Quant',        price:18.5 },
+  { id:6,  name:'SCORES Complaint Velocity',      category:'Governance',   alpha:'+2.9%', decay:55, status:'warning', buyers:17, provider:'SEBI Mirror',      price:4.5  },
+  { id:7,  name:'Unlisted Co. Intelligence',      category:'PE/VC',        alpha:'+9.3%', decay:94, status:'live',    buyers:23, provider:'MCA Parsed',       price:22.0 },
+  { id:8,  name:'India ESG Native Score',         category:'ESG',          alpha:'+1.8%', decay:41, status:'warning', buyers:11, provider:'GreenIndia',       price:3.8  },
+  { id:9,  name:'AA Framework Credit Signal',     category:'Credit',       alpha:'+5.8%', decay:87, status:'live',    buyers:31, provider:'Sahamati AA',      price:14.2 },
+  { id:10, name:'ONDC Merchant Flow Index',       category:'Consumer',     alpha:'+3.3%', decay:76, status:'live',    buyers:24, provider:'ONDC Analytics',   price:7.6  },
 ];
 
 const alerts = [
   { time:'09:14', type:'sebi', msg:'SEBI Circular SEBI/HO/MRD/2025-01 — F&O lot size revision for 43 stocks. Impact: HIGH on 3 active signals.' },
-  { time:'09:31', type:'gst', msg:'GST collections Dec preliminary: ₹1.87L Cr (+11.2% YoY). Consumer signal upgrade triggered.' },
-  { time:'10:02', type:'decay', msg:'UPI Retail Signal: Alpha decay threshold crossed (55% → was 71%). Consider rotation to UPI v2 layer.' },
-  { time:'10:45', type:'broker', msg:'Cross-broker net: BFSI sector positioning shifted 8% short in last 2hrs across 6 broker feeds.' },
-  { time:'11:20', type:'ai', msg:'🤖 AI Copilot: Detected earnings surprise pattern in GST+UPI correlation. HDFC Bank & Reliance flagged — 78% confidence.' },
+  { time:'09:31', type:'gst',  msg:'GST collections Dec preliminary: ₹1.87L Cr (+11.2% YoY). Consumer signal upgrade triggered.' },
+  { time:'10:02', type:'decay',msg:'UPI Retail Signal: Alpha decay threshold crossed (55% → was 71%). Consider rotation to UPI v2 layer.' },
+  { time:'10:45', type:'broker',msg:'Cross-broker net: BFSI sector positioning shifted 8% short in last 2hrs across 6 broker feeds.' },
+  { time:'11:20', type:'ai',   msg:'🤖 AI Copilot: Detected earnings surprise pattern in GST+UPI correlation. HDFC Bank & Reliance flagged — 78% confidence.' },
 ];
 
 const providers = [
-  { name:'Mangal Keshav Securities', type:'Broker', data:'Retail Flow + Sentiment', revenue:'₹24L/yr', status:'active' },
-  { name:'PayFlow India', type:'Fintech', data:'UPI Merchant GMV', revenue:'₹41L/yr', status:'active' },
-  { name:'GSTN Analytics Partner', type:'Gov Adjacent', data:'GST Filing Signals', revenue:'₹67L/yr', status:'active' },
-  { name:'NSE Quant Desk', type:'Exchange', data:'F&O Flow Data', revenue:'₹89L/yr', status:'active' },
-  { name:'MCA Parsed Intelligence', type:'RegTech', data:'Unlisted Co. Filings', revenue:'₹18L/yr', status:'pending' },
-  { name:'RegPulse Systems', type:'RegTech', data:'SEBI/RBI Circular Data', revenue:'₹32L/yr', status:'active' },
-  { name:'Sahamati (AA Hub)', type:'Gov DPI', data:'Consented Financial Data', revenue:'₹55L/yr', status:'active' },
-  { name:'ONDC Analytics', type:'Gov Adjacent', data:'D2C Merchant GMV', revenue:'₹28L/yr', status:'active' },
+  { name:'Mangal Keshav Securities', type:'Broker',       data:'Retail Flow + Sentiment',    revenue:'₹24L/yr', status:'active' },
+  { name:'PayFlow India',            type:'Fintech',      data:'UPI Merchant GMV',            revenue:'₹41L/yr', status:'active' },
+  { name:'GSTN Analytics Partner',   type:'Gov Adjacent', data:'GST Filing Signals',          revenue:'₹67L/yr', status:'active' },
+  { name:'NSE Quant Desk',           type:'Exchange',     data:'F&O Flow Data',               revenue:'₹89L/yr', status:'active' },
+  { name:'MCA Parsed Intelligence',  type:'RegTech',      data:'Unlisted Co. Filings',        revenue:'₹18L/yr', status:'pending'},
+  { name:'RegPulse Systems',         type:'RegTech',      data:'SEBI/RBI Circular Data',      revenue:'₹32L/yr', status:'active' },
+  { name:'Sahamati (AA Hub)',        type:'Gov DPI',      data:'Consented Financial Data',    revenue:'₹55L/yr', status:'active' },
+  { name:'ONDC Analytics',           type:'Gov Adjacent', data:'D2C Merchant GMV',            revenue:'₹28L/yr', status:'active' },
 ];
 
 const signalDecay = [
@@ -641,10 +1029,73 @@ const signalDecay = [
   { month:'M7', alpha:0.7 }, { month:'M8', alpha:0.3 },
 ];
 
+// AI Mock responses
+const aiMockResponses = [
+  {
+    thinking: [
+      '→ Scanning 47 alt-data feeds across GSTN, UPI, SEBI, AA layers…',
+      '→ Cross-referencing UPI consumer spend + GST surprise index + satellite imagery…',
+      '→ Pattern match: BFSI sector divergence detected — rotating signal recommendation generated'
+    ],
+    reply: `<strong>Analysis Complete — BFSI Rotation Signal Detected</strong><br><br>
+Based on the current UPI merchant GMV data and GST surprise index:<br><br>
+• <strong>BFSI UPI spend</strong> up +18.4% vs 30-day baseline — consumer credit appetite rising<br>
+• <strong>GST filings</strong> for NBFC segment show +11.2% surprise vs consensus<br>
+• Cross-broker sentiment: 45% short on BFSI → potential squeeze opportunity<br><br>
+<strong>Recommendation:</strong> Rotate 18% allocation from Food sector → BFSI/Pharma mix (expected +14.2% alpha over 60 days, 76% confidence).<br><br>
+Signals to buy: <em>AA Framework Credit Signal</em> + <em>SEBI Circular Impact Score</em>.`
+  },
+  {
+    thinking: [
+      '→ Scanning 47 alt-data feeds…',
+      '→ Running alpha decay model on active signal portfolio…',
+      '→ Recommendation: 2 signals approaching critical threshold — rotation queued'
+    ],
+    reply: `<strong>Portfolio Decay Analysis — Action Required</strong><br><br>
+Your signal portfolio health summary:<br><br>
+• <span style="color:#30D158">✓ 8 signals</span> in healthy range (decay score &gt;70%)<br>
+• <span style="color:#FF9F0A">⚠ 2 signals</span> approaching decay threshold (41-55% health)<br><br>
+<strong>Flagged signals:</strong><br>
+1. SCORES Complaint Velocity (55%) → replace with MCA Director Network Risk Score<br>
+2. India ESG Native Score v1 (41%) → upgrade to ESG India v2 (Jan 2026 build)<br><br>
+Both replacements have &gt;90% alpha correlation and 14-22 months of remaining lifecycle.`
+  },
+  {
+    thinking: [
+      '→ Scanning 47 alt-data feeds…',
+      '→ Parsing SEBI circulars issued last 48 hours via NLP engine…',
+      '→ Impact scoring complete — 3 signals require reweighting'
+    ],
+    reply: `<strong>SEBI Circular Digest — Last 48 Hours</strong><br><br>
+<strong>SEBI/HO/MRD/2025-01:</strong> F&O lot size revision for 43 mid-cap stocks effective March 2026. Impact: HIGH — reduces retail options volume. F&O Smart Money Flow signal requires recalibration.<br><br>
+<strong>SEBI/HO/MIRSD/2025-02:</strong> Enhanced KYC norms for FPIs. Minimal signal impact — Cross-Broker Retail Sentiment unaffected.<br><br>
+<strong>RBI/2025-26/82:</strong> Liquidity framework update — watch BFSI credit signal (AA Framework) for lag effect over next 2 weeks.<br><br>
+Overall regulatory risk score: <strong>MEDIUM</strong> for current portfolio.`
+  },
+  {
+    thinking: [
+      '→ Scanning 47 alt-data feeds…',
+      '→ Building composite signal architecture: GST + UPI + ONDC inputs…',
+      '→ Backtesting composite on NSE Nifty500 universe — results ready'
+    ],
+    reply: `<strong>GST + UPI Composite Signal — Build Complete</strong><br><br>
+I've modeled a composite signal combining:<br>
+• GST Revenue Surprise Index (weight: 45%)<br>
+• UPI Consumer Spend Layer (weight: 35%)<br>
+• ONDC Merchant Flow Index (weight: 20%)<br><br>
+<strong>Backtest Results (Jan 2023 – Jan 2026, Nifty 500):</strong><br>
+• Sharpe Ratio: 1.84 (vs 0.92 baseline)<br>
+• Annual Alpha: +8.7% above Nifty 500<br>
+• Max Drawdown: -6.2% (vs -18.4% index)<br>
+• Hit Rate: 64.3% on directional calls<br><br>
+<strong>Verdict:</strong> Production-ready. Add all 3 signals to your portfolio for this composite to activate.`
+  }
+];
+
 // ─── CHART REGISTRY ───
 let charts = {};
 function destroyCharts() {
-  Object.values(charts).forEach(c => c && c.destroy());
+  Object.values(charts).forEach(c => { try { c && c.destroy(); } catch(e){} });
   charts = {};
 }
 
@@ -659,6 +1110,7 @@ const pageTitles = {
 
 function navigate(id, el) {
   destroyCharts();
+  if (document.getElementById('agent-modal').classList.contains('visible')) toggleAgentModal();
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('page-title').textContent = pageTitles[id] || id;
@@ -670,52 +1122,131 @@ function navigate(id, el) {
   renderPage(id, page);
 }
 
+// ─── AGENT BAR ───
+let agentModalOpen = false;
+function toggleAgentModal() {
+  const m = document.getElementById('agent-modal');
+  agentModalOpen = !agentModalOpen;
+  m.classList.toggle('visible', agentModalOpen);
+}
+document.addEventListener('click', e => {
+  if (agentModalOpen && !e.target.closest('#agent-bar') && !e.target.closest('#agent-modal')) {
+    agentModalOpen = false;
+    document.getElementById('agent-modal').classList.remove('visible');
+  }
+});
+
+// Update agent bar time
+let agentMinutes = 8;
+setInterval(() => {
+  agentMinutes++;
+  const el = document.getElementById('agent-last-run');
+  if (el) el.textContent = `${agentMinutes} min ago`;
+  if (agentMinutes >= 30) { agentMinutes = 0; }
+}, 60000);
+
+// ─── TOAST ───
+function showToast(title, msg, type = 'success', icon = '✓') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `
+    <div class="toast-icon" style="${type==='success'?'background:var(--green-bg)':'background:var(--blue-bg)'}">${icon}</div>
+    <div>
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('toast-out');
+    setTimeout(() => t.remove(), 300);
+  }, 4000);
+}
+
 // ─── CLOCK ───
 function updateClock() {
   const now = new Date();
   document.getElementById('page-time').textContent =
     now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) +
-    ' IST · Friday, 27 Feb 2026';
+    ' IST · Sunday, 1 Mar 2026';
 }
 setInterval(updateClock, 1000);
 updateClock();
-
-// ─── RENDER PAGES ───
-function renderPage(id, container) {
-  switch(id) {
-    case 'dashboard': renderDashboard(container); break;
-    case 'marketplace': renderMarketplace(container); break;
-    case 'intelligence': renderIntelligence(container); break;
-    case 'providers': renderProviders(container); break;
-    case 'decay': renderDecay(container); break;
-    case 'modules': renderModules(container); break;
-    case 'ai_copilot': renderAICopilot(container); break;
-    case 'compliance': renderCompliance(container); break;
-    case 'research': renderResearch(container); break;
-    case 'roadmap': renderRoadmap(container); break;
-    default: container.innerHTML = '<div class="page"><p>Page coming soon.</p></div>';
-  }
-}
 
 // ─── HELPERS ───
 function decayColor(v) { return v > 75 ? '#30D158' : v > 50 ? '#FF9F0A' : '#FF453A'; }
 function decayBar(pct) {
   return `<div class="decay-bar"><div class="decay-fill" style="width:${pct}%;background:${decayColor(pct)}"></div></div>`;
 }
+function fmtLakhs(v) {
+  if (v >= 100) return `₹${(v/100).toFixed(1)}Cr`;
+  if (v > 0) return `₹${v.toFixed(1)}L`;
+  return '₹0';
+}
+function animateCount(el, endVal, prefix='₹', suffix='Cr') {
+  if (!el) return;
+  const dur = 700, steps = 30, stepTime = dur/steps;
+  let step = 0;
+  const start = parseFloat(el.dataset.val || '0') || 0;
+  el.dataset.val = endVal;
+  const timer = setInterval(() => {
+    step++;
+    const val = start + (endVal - start) * (step/steps);
+    el.textContent = prefix + val.toFixed(1) + suffix;
+    if (step >= steps) {
+      clearInterval(timer);
+      el.textContent = prefix + endVal.toFixed(1) + suffix;
+      el.classList.add('count-up-flash');
+      setTimeout(() => el.classList.remove('count-up-flash'), 700);
+    }
+  }, stepTime);
+}
 
-// ═══ DASHBOARD ═══
+// ─── RENDER PAGES ───
+function renderPage(id, container) {
+  switch(id) {
+    case 'dashboard':    renderDashboard(container);    break;
+    case 'marketplace':  renderMarketplace(container);  break;
+    case 'intelligence': renderIntelligence(container); break;
+    case 'providers':    renderProviders(container);    break;
+    case 'decay':        renderDecay(container);        break;
+    case 'modules':      renderModules(container);      break;
+    case 'ai_copilot':   renderAICopilot(container);    break;
+    case 'compliance':   renderCompliance(container);   break;
+    case 'research':     renderResearch(container);     break;
+    case 'roadmap':      renderRoadmap(container);      break;
+    default: container.innerHTML = '<div class="page"><p>Page coming soon.</p></div>';
+  }
+}
+
+// ══════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════
+function getDashboardRevenue() {
+  const base = 8.2; // Cr
+  return base + (NS.state.totalRevenue / 100);
+}
+function getDashboardPortfolio() {
+  const base = 0;
+  return base + (NS.state.portfolioValue / 100);
+}
+
 function renderDashboard(c) {
+  const revCr = getDashboardRevenue();
+  const portCr = getDashboardPortfolio();
+  const signalCount = 47 + NS.state.boughtSignals.length;
+
   c.innerHTML = `<div class="page">
   <!-- STAT CARDS -->
   <div class="stat-grid">
     <div class="stat-card blue">
       <div class="stat-label">Active Signals</div>
-      <div class="stat-value">47</div>
-      <div class="stat-delta up">↑ +3 this week</div>
+      <div class="stat-value" id="db-signals">${signalCount}</div>
+      <div class="stat-delta up">↑ +${NS.state.boughtSignals.length + 3} this week</div>
     </div>
     <div class="stat-card green">
-      <div class="stat-label">Platform Alpha</div>
-      <div class="stat-value">₹8.2Cr</div>
+      <div class="stat-label">Platform Revenue</div>
+      <div class="stat-value" id="db-revenue" data-val="${revCr}">₹${revCr.toFixed(1)}Cr</div>
       <div class="stat-delta up">↑ +22% YoY</div>
     </div>
     <div class="stat-card orange">
@@ -724,9 +1255,11 @@ function renderDashboard(c) {
       <div class="stat-delta up">↑ +19 this month</div>
     </div>
     <div class="stat-card purple">
-      <div class="stat-label">Data Providers</div>
-      <div class="stat-value">24</div>
-      <div class="stat-delta up">↑ +2 onboarded</div>
+      <div class="stat-label">Portfolio Value</div>
+      <div class="stat-value" id="db-portfolio" data-val="${portCr}" style="${portCr > 0 ? 'color:var(--green)' : ''}">
+        ${portCr > 0 ? '₹'+portCr.toFixed(1)+'Cr' : '—'}
+      </div>
+      <div class="stat-delta ${portCr > 0 ? 'up' : ''}">${portCr > 0 ? '↑ +14.2% projected alpha' : 'Buy signals to start'}</div>
     </div>
   </div>
 
@@ -742,7 +1275,7 @@ function renderDashboard(c) {
           <div class="signal-dot ${s.status}"></div>
           <div style="flex:1;min-width:0">
             <div class="signal-name">${s.name}</div>
-            <div class="signal-cat">${s.category}</div>
+            <div class="signal-cat">${s.category}${NS.owns(s.id) ? ' &nbsp;<span style="font-size:9px;color:#059669;font-weight:700">● OWNED</span>' : ''}</div>
           </div>
           <div style="text-align:right">
             <div class="signal-alpha">${s.alpha}</div>
@@ -781,7 +1314,6 @@ function renderDashboard(c) {
         </div>`).join('')}
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">Sector Positioning</div>
       <div class="card-sub">Cross-broker net long/short %</div>
@@ -791,62 +1323,42 @@ function renderDashboard(c) {
   </div>`;
 
   setTimeout(() => {
-    // GST Chart
     const gCtx = document.getElementById('gstChart');
-    if (gCtx) {
-      charts.gst = new Chart(gCtx, {
-        type: 'bar',
-        data: {
-          labels: gstData.map(d => d.month),
-          datasets: [
-            { label:'Expected', data: gstData.map(d => d.expected), backgroundColor:'#E5E7EB', borderRadius:5 },
-            { label:'Actual', data: gstData.map(d => d.actual), backgroundColor:'#0071E3', borderRadius:5 },
-          ]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false }}, scales:{ x:{ grid:{display:false}, ticks:{font:{size:10},color:'#AEAEB2'} }, y:{ grid:{color:'#F5F5F7'}, ticks:{font:{size:10},color:'#AEAEB2'} } } }
-      });
-    }
+    if (gCtx) charts.gst = new Chart(gCtx, {
+      type:'bar',
+      data:{ labels:gstData.map(d=>d.month), datasets:[
+        {label:'Expected',data:gstData.map(d=>d.expected),backgroundColor:'#E5E7EB',borderRadius:5},
+        {label:'Actual',data:gstData.map(d=>d.actual),backgroundColor:'#0071E3',borderRadius:5},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}}}}
+    });
 
-    // UPI Chart
     const uCtx = document.getElementById('upiChart');
-    if (uCtx) {
-      charts.upi = new Chart(uCtx, {
-        type: 'line',
-        data: {
-          labels: upiData.map(d => d.week),
-          datasets: [
-            { label:'Retail', data: upiData.map(d => d.retail), borderColor:'#0071E3', backgroundColor:'rgba(0,113,227,0.08)', fill:true, tension:0.4, pointRadius:3, borderWidth:2 },
-            { label:'Food', data: upiData.map(d => d.food), borderColor:'#30D158', backgroundColor:'rgba(48,209,88,0.08)', fill:true, tension:0.4, pointRadius:3, borderWidth:2 },
-            { label:'Travel', data: upiData.map(d => d.travel), borderColor:'#FF9F0A', backgroundColor:'rgba(255,159,10,0.06)', fill:true, tension:0.4, pointRadius:3, borderWidth:2 },
-          ]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{font:{size:10},boxWidth:10,padding:12} }}, scales:{ x:{ grid:{display:false}, ticks:{font:{size:10},color:'#AEAEB2'} }, y:{ grid:{color:'#F5F5F7'}, ticks:{font:{size:10},color:'#AEAEB2'} } } }
-      });
-    }
+    if (uCtx) charts.upi = new Chart(uCtx, {
+      type:'line',
+      data:{ labels:upiData.map(d=>d.week), datasets:[
+        {label:'Retail',data:upiData.map(d=>d.retail),borderColor:'#0071E3',backgroundColor:'rgba(0,113,227,0.08)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
+        {label:'Food',data:upiData.map(d=>d.food),borderColor:'#30D158',backgroundColor:'rgba(48,209,88,0.08)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
+        {label:'Travel',data:upiData.map(d=>d.travel),borderColor:'#FF9F0A',backgroundColor:'rgba(255,159,10,0.06)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}}}}
+    });
 
-    // Sector Chart
     const sCtx = document.getElementById('sectorChart');
-    if (sCtx) {
-      charts.sector = new Chart(sCtx, {
-        type: 'bar',
-        data: {
-          labels: ['IT','BFSI','Pharma','FMCG','Infra','Auto'],
-          datasets: [
-            { label:'Long %', data:[68,55,72,48,81,61], backgroundColor:'rgba(48,209,88,0.75)', borderRadius:4 },
-            { label:'Short %', data:[32,45,28,52,19,39], backgroundColor:'rgba(255,69,58,0.75)', borderRadius:4 },
-          ]
-        },
-        options: {
-          indexAxis:'y', responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{ labels:{font:{size:10},boxWidth:10,padding:12} }},
-          scales:{ x:{ stacked:true, grid:{color:'#F5F5F7'}, ticks:{font:{size:10},color:'#AEAEB2'} }, y:{ stacked:true, grid:{display:false}, ticks:{font:{size:10},color:'#AEAEB2'} } }
-        }
-      });
-    }
+    if (sCtx) charts.sector = new Chart(sCtx, {
+      type:'bar',
+      data:{ labels:['IT','BFSI','Pharma','FMCG','Infra','Auto'], datasets:[
+        {label:'Long %',data:[68,55,72,48,81,61],backgroundColor:'rgba(48,209,88,0.75)',borderRadius:4},
+        {label:'Short %',data:[32,45,28,52,19,39],backgroundColor:'rgba(255,69,58,0.75)',borderRadius:4},
+      ]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10,padding:12}}},scales:{x:{stacked:true,grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}},y:{stacked:true,grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}}}}
+    });
   }, 50);
 }
 
-// ═══ MARKETPLACE ═══
+// ══════════════════════════════════
+//  MARKETPLACE
+// ══════════════════════════════════
 function renderMarketplace(c) {
   let currentFilter = 'All';
   const cats = ['All','Macro','Consumer','Derivatives','Regulatory','ESG','PE/VC','Positioning','Credit'];
@@ -863,7 +1375,7 @@ function renderMarketplace(c) {
         <div class="hero-stats">
           <div><div class="hero-stat-val" style="color:#0071E3">47</div><div class="hero-stat-label">Live Signals</div></div>
           <div style="width:1px;background:rgba(0,0,0,0.08)"></div>
-          <div><div class="hero-stat-val" style="color:#30D158">₹8.2Cr</div><div class="hero-stat-label">Revenue Paid</div></div>
+          <div><div class="hero-stat-val" style="color:#30D158">₹${getDashboardRevenue().toFixed(1)}Cr</div><div class="hero-stat-label">Revenue Paid</div></div>
           <div style="width:1px;background:rgba(0,0,0,0.08)"></div>
           <div><div class="hero-stat-val" style="color:#BF5AF2">143</div><div class="hero-stat-label">Quant Buyers</div></div>
         </div>
@@ -871,20 +1383,21 @@ function renderMarketplace(c) {
     </div>
 
     <div class="filter-row" id="filters">
-      ${cats.map(c => `<button class="filter-btn ${c===filter?'active':''}" onclick="filterSignals('${c}')">${c}</button>`).join('')}
+      ${cats.map(cat => `<button class="filter-btn ${cat===filter?'active':''}" onclick="filterSignals('${cat}')">${cat}</button>`).join('')}
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      ${filtered.map(s => `
-      <div style="background:white;border-radius:16px;padding:20px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 4px rgba(0,0,0,0.05);cursor:pointer;transition:all 0.2s"
-        onmouseenter="this.style.boxShadow='0 8px 28px rgba(0,0,0,0.12)';this.style.transform='translateY(-2px)'"
-        onmouseleave="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.05)';this.style.transform='translateY(0)'">
+      ${filtered.map(s => {
+        const owned = NS.owns(s.id);
+        return `
+      <div class="mkt-signal-card ${owned ? 'is-owned' : ''}" id="signal-card-${s.id}">
+        ${owned ? '<div style="position:absolute;top:14px;right:14px"><span class="badge owned">✓ Owned</span></div>' : ''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div>
             <span class="badge ${s.status}" style="margin-bottom:7px;display:inline-flex">● ${s.status.toUpperCase()}</span>
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;letter-spacing:-0.3px">${s.name}</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;letter-spacing:-0.3px;${owned?'color:#059669':''}">${s.name}</div>
           </div>
-          <div style="text-align:right">
+          <div style="text-align:right;${owned?'margin-right:60px':''}">
             <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:19px;color:#30D158">${s.alpha}</div>
             <div style="font-size:9.5px;color:#AEAEB2">avg alpha</div>
           </div>
@@ -909,11 +1422,19 @@ function renderMarketplace(c) {
             <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px">${s.buyers}</div>
           </div>
         </div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.06);display:flex;gap:7px">
-          <button class="btn btn-primary btn-sm" style="flex:1">Buy Signal</button>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;gap:7px">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:700;color:var(--text)">₹${s.price}L <span style="font-weight:400;color:var(--text3)">/ year</span></div>
+            <div style="font-size:9.5px;color:var(--text3)">Annual subscription</div>
+          </div>
+          ${owned
+            ? `<button class="btn-owned" disabled>✓ Signal Owned</button>`
+            : `<button class="btn btn-primary btn-sm" id="buy-btn-${s.id}" onclick="buySignal(${s.id}, ${s.price}, this)">Buy Signal</button>`
+          }
           <button class="btn btn-ghost btn-sm">Preview</button>
         </div>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>
     </div>`;
   }
@@ -926,16 +1447,56 @@ function renderMarketplace(c) {
   c.innerHTML = buildHTML(currentFilter);
 }
 
-// ═══ INTELLIGENCE ═══
+// ── BUY SIGNAL HANDLER ──
+window.buySignal = function(id, price, btn) {
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Acquiring…';
+  btn.style.background = '#636366';
+
+  setTimeout(() => {
+    const success = NS.buySignal(id, price);
+    if (success) {
+      // Update button to owned state
+      const wrap = document.getElementById(`signal-card-${id}`);
+      if (wrap) {
+        wrap.classList.add('is-owned');
+        // Add owned badge
+        if (!wrap.querySelector('.badge.owned')) {
+          const badge = document.createElement('div');
+          badge.style.cssText = 'position:absolute;top:14px;right:14px';
+          badge.innerHTML = '<span class="badge owned">✓ Owned</span>';
+          wrap.appendChild(badge);
+        }
+        // Replace button
+        btn.outerHTML = `<button class="btn-owned" disabled>✓ Signal Owned</button>`;
+        // Name highlight
+        const nameEl = wrap.querySelector('[style*="Syne"]');
+        if (nameEl) nameEl.style.color = '#059669';
+      }
+
+      // Update marketplace revenue stat
+      const revEl = document.querySelector('.hero-stat-val');
+      if (revEl) revEl.textContent = `₹${getDashboardRevenue().toFixed(1)}Cr`;
+
+      NS.updateSidebarWidget();
+      showToast('Signal Acquired ✓', `${signals.find(s=>s.id===id)?.name} — added to your portfolio. Expected alpha: +14.2%`, 'success', '📊');
+    }
+  }, 1500);
+};
+
+// ══════════════════════════════════
+//  INTELLIGENCE
+// ══════════════════════════════════
 function renderIntelligence(c) {
   let activeModule = 'gst';
   const modules = [
-    { id:'gst', icon:'📊', label:'GST Index', color:'#0071E3', bg:'#EBF3FD' },
-    { id:'upi', icon:'💳', label:'UPI Flow', color:'#30D158', bg:'#EDFAF2' },
-    { id:'sebi', icon:'⚖️', label:'SEBI Circulars', color:'#FF453A', bg:'#FFF1F0' },
+    { id:'gst',     icon:'📊', label:'GST Index',       color:'#0071E3', bg:'#EBF3FD' },
+    { id:'upi',     icon:'💳', label:'UPI Flow',         color:'#30D158', bg:'#EDFAF2' },
+    { id:'sebi',    icon:'⚖️', label:'SEBI Circulars',   color:'#FF453A', bg:'#FFF1F0' },
     { id:'options', icon:'📈', label:'F&O Intelligence', color:'#BF5AF2', bg:'#F5F0FE' },
-    { id:'aa', icon:'🔗', label:'AA Framework', color:'#32ADE6', bg:'#EBF7FD' },
-    { id:'ondc', icon:'🛍️', label:'ONDC Signals', color:'#FF9F0A', bg:'#FFF8EC' },
+    { id:'aa',      icon:'🔗', label:'AA Framework',     color:'#32ADE6', bg:'#EBF7FD' },
+    { id:'ondc',    icon:'🛍️', label:'ONDC Signals',     color:'#FF9F0A', bg:'#FFF8EC' },
   ];
 
   function buildModule(mid) {
@@ -1001,9 +1562,7 @@ function renderIntelligence(c) {
           <div class="card-sub">Data types available via consent from AA partners</div>
           ${[{label:'Bank Statement Flow',coverage:94,badge:'live'},{label:'GST Filing Proxy',coverage:78,badge:'live'},{label:'Insurance Premium Proxy',coverage:65,badge:'live'},{label:'Mutual Fund SIP Signal',coverage:82,badge:'live'},{label:'EPFO Employment Signal',coverage:71,badge:'warning'},{label:'Real Estate Registry',coverage:38,badge:'warning'}].map(s=>`
           <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.04)">
-            <div style="flex:1">
-              <div style="font-size:12.5px;font-weight:500">${s.label}</div>
-            </div>
+            <div style="flex:1"><div style="font-size:12.5px;font-weight:500">${s.label}</div></div>
             <div style="width:80px;height:5px;background:#F0F0F0;border-radius:4px;overflow:hidden">
               <div style="height:100%;width:${s.coverage}%;background:${decayColor(s.coverage)};border-radius:4px"></div>
             </div>
@@ -1042,8 +1601,7 @@ function renderIntelligence(c) {
         </div>
       </div>`;
 
-    // Default: SEBI / Options
-    return `<div class="card"><div class="card-title">${mid.toUpperCase()} Module</div><div class="card-sub">Loading data...</div></div>`;
+    return `<div class="card"><div class="card-title">${mid.toUpperCase()} Module</div><div class="card-sub">Loading intelligence data…</div></div>`;
   }
 
   c.innerHTML = `<div class="page">
@@ -1074,24 +1632,24 @@ function renderIntelligence(c) {
     });
     if (mid === 'gst') setTimeout(() => {
       charts.intGST = new Chart(document.getElementById('intGSTChart'), {
-        type: 'line',
-        data: { labels: gstData.map(d=>d.month), datasets: [
-          { label:'Actual', data:gstData.map(d=>d.actual), borderColor:'#0071E3', backgroundColor:'rgba(0,113,227,0.1)', fill:true, tension:0.4, borderWidth:2.5, pointRadius:4 },
-          { label:'Expected', data:gstData.map(d=>d.expected), borderColor:'#AEAEB2', borderDash:[5,5], fill:false, tension:0.4, borderWidth:2, pointRadius:0 },
+        type:'line',
+        data:{labels:gstData.map(d=>d.month),datasets:[
+          {label:'Actual',data:gstData.map(d=>d.actual),borderColor:'#0071E3',backgroundColor:'rgba(0,113,227,0.1)',fill:true,tension:0.4,borderWidth:2.5,pointRadius:4},
+          {label:'Expected',data:gstData.map(d=>d.expected),borderColor:'#AEAEB2',borderDash:[5,5],fill:false,tension:0.4,borderWidth:2,pointRadius:0},
         ]},
-        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{labels:{font:{size:10},boxWidth:10}} }, scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}}, y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}} } }
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}}}}
       });
     }, 30);
     if (mid === 'upi') setTimeout(() => {
       charts.intUPI = new Chart(document.getElementById('intUPIChart'), {
-        type: 'line',
-        data: { labels: upiData.map(d=>d.week), datasets: [
-          { label:'Retail', data:upiData.map(d=>d.retail), borderColor:'#0071E3', backgroundColor:'rgba(0,113,227,0.08)', fill:true, tension:0.4, borderWidth:2, pointRadius:3 },
-          { label:'Food', data:upiData.map(d=>d.food), borderColor:'#30D158', backgroundColor:'rgba(48,209,88,0.06)', fill:true, tension:0.4, borderWidth:2, pointRadius:3 },
-          { label:'Travel', data:upiData.map(d=>d.travel), borderColor:'#FF9F0A', backgroundColor:'rgba(255,159,10,0.05)', fill:true, tension:0.4, borderWidth:2, pointRadius:3 },
-          { label:'Education', data:upiData.map(d=>d.edu), borderColor:'#BF5AF2', backgroundColor:'rgba(191,90,242,0.05)', fill:true, tension:0.4, borderWidth:2, pointRadius:3 },
+        type:'line',
+        data:{labels:upiData.map(d=>d.week),datasets:[
+          {label:'Retail',data:upiData.map(d=>d.retail),borderColor:'#0071E3',backgroundColor:'rgba(0,113,227,0.08)',fill:true,tension:0.4,borderWidth:2,pointRadius:3},
+          {label:'Food',data:upiData.map(d=>d.food),borderColor:'#30D158',backgroundColor:'rgba(48,209,88,0.06)',fill:true,tension:0.4,borderWidth:2,pointRadius:3},
+          {label:'Travel',data:upiData.map(d=>d.travel),borderColor:'#FF9F0A',backgroundColor:'rgba(255,159,10,0.05)',fill:true,tension:0.4,borderWidth:2,pointRadius:3},
+          {label:'Education',data:upiData.map(d=>d.edu),borderColor:'#BF5AF2',backgroundColor:'rgba(191,90,242,0.05)',fill:true,tension:0.4,borderWidth:2,pointRadius:3},
         ]},
-        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{labels:{font:{size:10},boxWidth:10,padding:10}} }, scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}}, y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}} } }
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}}}}
       });
     }, 30);
   };
@@ -1099,21 +1657,18 @@ function renderIntelligence(c) {
   setTimeout(() => switchIntModule('gst'), 30);
 }
 
-// ═══ PROVIDERS ═══
+// ══════════════════════════════════
+//  PROVIDERS
+// ══════════════════════════════════
 function renderProviders(c) {
   c.innerHTML = `<div class="page">
     <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.8px;margin-bottom:5px">Data Providers</div>
     <div style="font-size:12.5px;color:#636366;margin-bottom:22px">Verified data partners — revenue-share model, compliance-vetted, signal-mapped</div>
-
     <div class="card" style="margin-bottom:14px;padding:0">
       <table class="data-table">
-        <thead>
-          <tr>
-            <th>Provider</th><th>Type</th><th>Data Source</th><th>Annual Revenue</th><th>Status</th><th></th>
-          </tr>
-        </thead>
+        <thead><tr><th>Provider</th><th>Type</th><th>Data Source</th><th>Annual Revenue</th><th>Status</th><th></th></tr></thead>
         <tbody>
-          ${providers.map(p => `
+          ${providers.map(p=>`
           <tr>
             <td><span style="font-weight:600;font-size:13px">${p.name}</span></td>
             <td><span class="type-chip">${p.type}</span></td>
@@ -1125,7 +1680,6 @@ function renderProviders(c) {
         </tbody>
       </table>
     </div>
-
     <div class="grid-3">
       ${[{icon:'🏦',label:'Broker Network',value:'8 brokers',desc:'Retail flow + sentiment aggregated across 8 partner brokers',color:'#0071E3'},{icon:'💹',label:'Total Data GMV',value:'₹11.4Cr',desc:'Annual data revenue distributed to providers via rev-share model',color:'#30D158'},{icon:'🔐',label:'DPDP Score',value:'98/100',desc:'All datasets DPDP, PDPB, SEBI Reg FD compliant — verified quarterly',color:'#BF5AF2'}].map(m=>`
       <div class="card" style="text-align:center">
@@ -1138,7 +1692,9 @@ function renderProviders(c) {
   </div>`;
 }
 
-// ═══ DECAY ═══
+// ══════════════════════════════════
+//  SIGNAL HEALTH / DECAY
+// ══════════════════════════════════
 function renderDecay(c) {
   c.innerHTML = `<div class="page">
     <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.8px;margin-bottom:5px">Signal Health Monitor</div>
@@ -1150,7 +1706,7 @@ function renderDecay(c) {
         <div style="font-weight:700;font-size:13.5px;color:#D97706">2 Signals Approaching Decay Threshold</div>
         <div style="font-size:11.5px;color:#92400E;margin-top:2px">SCORES Complaint Velocity (55% health) and India ESG Native Score (41% health) need attention. AI rotation recommendations queued.</div>
       </div>
-      <button class="btn btn-sm" style="background:#FF9F0A;color:white;border:none">View Recommendations</button>
+      <button class="btn btn-sm" style="background:#FF9F0A;color:white;border:none" onclick="navigate('ai_copilot',document.querySelector('[onclick*=ai_copilot]'))">View Recommendations</button>
     </div>
 
     <div class="grid-3-2">
@@ -1159,8 +1715,8 @@ function renderDecay(c) {
         <div class="card-sub">GST Revenue Surprise Index — 8 month trajectory</div>
         <div class="chart-wrap" style="height:190px"><canvas id="decayChart"></canvas></div>
         <div style="display:flex;gap:7px;margin-top:12px">
-          ${[['Phase 1 (Discovery)','#30D158'],['Phase 2 (Maturity)','#FF9F0A'],['Phase 3 (Saturation)','#FF453A']].map(([l,c])=>`
-          <div style="flex:1;padding:7px;background:${c}11;border-radius:8px;border:1px solid ${c}33;font-size:9.5px;font-weight:700;color:${c};text-align:center">${l}</div>`).join('')}
+          ${[['Phase 1 (Discovery)','#30D158'],['Phase 2 (Maturity)','#FF9F0A'],['Phase 3 (Saturation)','#FF453A']].map(([l,col])=>`
+          <div style="flex:1;padding:7px;background:${col}11;border-radius:8px;border:1px solid ${col}33;font-size:9.5px;font-weight:700;color:${col};text-align:center">${l}</div>`).join('')}
         </div>
       </div>
       <div class="card">
@@ -1177,6 +1733,7 @@ function renderDecay(c) {
             </div>
             <span style="font-size:10.5px;font-weight:700;color:${decayColor(s.decay)};width:28px;text-align:right">${s.decay}%</span>
           </div>
+          ${NS.owns(s.id) ? '<span style="font-size:8.5px;color:#059669;font-weight:700">●</span>' : ''}
         </div>`).join('')}
       </div>
     </div>
@@ -1206,22 +1763,19 @@ function renderDecay(c) {
 
   setTimeout(() => {
     charts.decay = new Chart(document.getElementById('decayChart'), {
-      type: 'line',
-      data: {
-        labels: signalDecay.map(d=>d.month),
-        datasets: [{
-          label:'Alpha %', data: signalDecay.map(d=>d.alpha),
-          borderColor: '#0071E3', backgroundColor:'rgba(0,113,227,0.07)',
-          fill:true, tension:0.4, borderWidth:3,
-          pointRadius:5, pointBackgroundColor:'#0071E3', pointBorderColor:'white', pointBorderWidth:2
-        }]
+      type:'line',
+      data:{
+        labels:signalDecay.map(d=>d.month),
+        datasets:[{label:'Alpha %',data:signalDecay.map(d=>d.alpha),borderColor:'#0071E3',backgroundColor:'rgba(0,113,227,0.07)',fill:true,tension:0.4,borderWidth:3,pointRadius:5,pointBackgroundColor:'#0071E3',pointBorderColor:'white',pointBorderWidth:2}]
       },
-      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}}, y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}} } }
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}}}}
     });
   }, 50);
 }
 
-// ═══ MODULES ═══
+// ══════════════════════════════════
+//  MODULES
+// ══════════════════════════════════
 function renderModules(c) {
   const mods = [
     {icon:'📋',bg:'#EBF3FD',color:'#0071E3',name:'SEBI Circular Engine',desc:'Real-time SEBI/RBI circular NLP — impact scored, signal-mapped, backtested P&L before you even read it.',stat:'41 subscribers · 97% alert accuracy'},
@@ -1253,11 +1807,15 @@ function renderModules(c) {
   </div>`;
 }
 
-// ═══ AI COPILOT ═══
+// ══════════════════════════════════
+//  AI COPILOT (demo-ready, no real API)
+// ══════════════════════════════════
+let aiMockIdx = 0;
+
 function renderAICopilot(c) {
   c.innerHTML = `<div class="page">
     <div class="ai-banner">
-      <div class="ai-tag">✦ Powered by Claude</div>
+      <div class="ai-tag">✦ NEXUS AI Engine</div>
       <div class="ai-title">NEXUS AI Copilot</div>
       <div class="ai-sub">Your intelligent quant co-analyst. Ask anything about signals, correlations, market conditions, or get instant alpha strategies built from India's unique data stack.</div>
       <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
@@ -1266,7 +1824,7 @@ function renderAICopilot(c) {
           '🔍 Find earnings surprises for BFSI next 30 days',
           '⚡ Build a GST + UPI composite signal',
           '📋 Summarize today\'s SEBI circulars'
-        ].map(s=>`<div onclick="setPrompt('${s}')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;font-size:11.5px;cursor:pointer;transition:background 0.14s;color:rgba(255,255,255,0.85)"
+        ].map((s,i)=>`<div onclick="setPrompt(${i})" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;font-size:11.5px;cursor:pointer;transition:background 0.14s;color:rgba(255,255,255,0.85)"
           onmouseenter="this.style.background='rgba(255,255,255,0.15)'"
           onmouseleave="this.style.background='rgba(255,255,255,0.08)'">${s}</div>`).join('')}
       </div>
@@ -1279,7 +1837,7 @@ function renderAICopilot(c) {
           <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0071E3,#BF5AF2);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🤖</div>
           <div style="background:var(--bg);border-radius:0 12px 12px 12px;padding:12px 14px;max-width:80%;font-size:12.5px;line-height:1.65;color:var(--text)">
             <strong>Hello, Arjun.</strong> I'm your NEXUS AI Copilot — trained on India's full alt data stack.<br><br>
-            I can help you analyze signal correlations, detect alpha decay patterns, build composite signals from GST + UPI + SEBI data, or interpret today's regulatory changes for your portfolio. What would you like to explore?
+            I can help you analyze signal correlations, detect alpha decay patterns, build composite signals from GST + UPI + SEBI data, or interpret today's regulatory changes. What would you like to explore?
           </div>
         </div>
       </div>
@@ -1289,7 +1847,8 @@ function renderAICopilot(c) {
     <div class="card" style="padding:12px 16px">
       <div style="display:flex;gap:10px;align-items:flex-end">
         <textarea id="ai-input" placeholder="Ask about signals, correlations, market events, strategy ideas..."
-          style="flex:1;border:none;outline:none;font-family:inherit;font-size:13px;resize:none;height:42px;line-height:1.5;background:transparent;color:var(--text)" rows="2"></textarea>
+          style="flex:1;border:none;outline:none;font-family:inherit;font-size:13px;resize:none;height:42px;line-height:1.5;background:transparent;color:var(--text)" rows="2"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIMessage();}"></textarea>
         <button onclick="sendAIMessage()" style="background:linear-gradient(135deg,#0071E3,#34C759);color:white;border:none;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity 0.14s;white-space:nowrap"
           onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">
           Send ↑
@@ -1308,8 +1867,17 @@ function renderAICopilot(c) {
     </div>
   </div>`;
 
-  window.setPrompt = function(text) {
-    document.getElementById('ai-input').value = text.replace(/^[^\s]+\s/, '');
+  window.setPrompt = function(idx) {
+    const prompts = [
+      'Analyze my signal portfolio decay',
+      'Find earnings surprises for BFSI next 30 days',
+      'Build a GST + UPI composite signal',
+      'Summarize today\'s SEBI circulars'
+    ];
+    document.getElementById('ai-input').value = prompts[idx];
+    document.getElementById('ai-input').focus();
+    // Pre-set mock index
+    aiMockIdx = idx;
   };
 
   window.sendAIMessage = async function() {
@@ -1319,44 +1887,53 @@ function renderAICopilot(c) {
     input.value = '';
 
     const hist = document.getElementById('chat-history');
+    // User bubble
     hist.innerHTML += `<div style="display:flex;gap:10px;justify-content:flex-end">
       <div style="background:#0071E3;border-radius:12px 0 12px 12px;padding:10px 14px;max-width:75%;font-size:12.5px;line-height:1.6;color:white">${msg}</div>
       <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0071E3,#BF5AF2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:white;font-weight:700">AK</div>
     </div>`;
+    hist.scrollTop = hist.scrollHeight;
 
-    const loadId = 'load-' + Date.now();
-    hist.innerHTML += `<div id="${loadId}" style="display:flex;gap:10px">
+    // Pick mock response
+    const mockData = aiMockResponses[aiMockIdx % aiMockResponses.length];
+    aiMockIdx++;
+
+    // Thinking trace container
+    const traceId = 'trace-' + Date.now();
+    hist.innerHTML += `<div id="${traceId}" style="display:flex;gap:10px">
       <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0071E3,#BF5AF2);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🤖</div>
-      <div style="background:var(--bg);border-radius:0 12px 12px 12px;padding:12px 14px;max-width:80%;font-size:12.5px;line-height:1.65">
-        <span style="opacity:0.5">Analyzing across India's data stack...</span>
+      <div style="flex:1">
+        <div class="ai-thinking">
+          ${mockData.thinking.map((t,i) => `<div class="ai-thinking-line" id="${traceId}-line-${i}"><div class="thinking-dot"></div><span>${t}</span></div>`).join('')}
+        </div>
+        <div id="${traceId}-reply" style="display:none;background:var(--bg);border-radius:0 12px 12px 12px;padding:12px 14px;font-size:12.5px;line-height:1.65;margin-top:8px;color:var(--text)"></div>
       </div>
     </div>`;
     hist.scrollTop = hist.scrollHeight;
 
-    try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: `You are NEXUS AI Copilot — a quant intelligence assistant for India's alternative data platform. You help quant analysts interpret signals from GST collections, UPI transaction flows, SEBI circulars, F&O derivatives data, Account Aggregator financial data, and ONDC commerce flows. You're deeply knowledgeable about NSE/BSE markets, Indian regulatory framework (SEBI, RBI, MCA), and alpha generation from non-traditional data. Keep responses concise, actionable, and data-driven. Use ₹ for Indian rupees. Reference India-specific context like Nifty, Sensex, SEBI, GSTN, etc.`,
-          messages: [{ role: 'user', content: msg }]
-        })
-      });
+    // Animate thinking lines
+    for (let i = 0; i < mockData.thinking.length; i++) {
+      await new Promise(r => setTimeout(r, 1800));
+      const lineEl = document.getElementById(`${traceId}-line-${i}`);
+      if (lineEl) { lineEl.classList.add('visible', 'done'); }
+      hist.scrollTop = hist.scrollHeight;
+    }
 
-      const data = await response.json();
-      const reply = data.content?.map(b => b.text || '').join('') || 'Unable to process request.';
+    await new Promise(r => setTimeout(r, 600));
 
-      document.getElementById(loadId).querySelector('div:last-child').innerHTML = reply.replace(/\n/g, '<br>');
-    } catch(err) {
-      document.getElementById(loadId).querySelector('div:last-child').innerHTML = `<em style="color:var(--red)">AI service temporarily unavailable. Please try again.</em>`;
+    // Show reply
+    const replyEl = document.getElementById(`${traceId}-reply`);
+    if (replyEl) {
+      replyEl.style.display = 'block';
+      replyEl.innerHTML = mockData.reply;
     }
     hist.scrollTop = hist.scrollHeight;
   };
 }
 
-// ═══ DPDP COMPLIANCE ═══
+// ══════════════════════════════════
+//  DPDP COMPLIANCE
+// ══════════════════════════════════
 function renderCompliance(c) {
   const checks = [
     {label:'Data Localisation',desc:'All personal data processed on India-based servers',status:'pass'},
@@ -1413,13 +1990,14 @@ function renderCompliance(c) {
   </div>`;
 }
 
-// ═══ MARKET RESEARCH ═══
+// ══════════════════════════════════
+//  MARKET RESEARCH
+// ══════════════════════════════════
 function renderResearch(c) {
   c.innerHTML = `<div class="page">
     <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.8px;margin-bottom:5px">Market Research & Opportunity</div>
     <div style="font-size:12.5px;color:#636366;margin-bottom:22px">Evidence-based market analysis supporting the NEXUS platform opportunity in India's alt data ecosystem</div>
 
-    <!-- Key Market Numbers -->
     <div class="research-grid">
       <div class="research-card" style="border-top:3px solid #0071E3">
         <div class="research-value" style="color:#0071E3">$290M</div>
@@ -1434,16 +2012,15 @@ function renderResearch(c) {
       <div class="research-card" style="border-top:3px solid #BF5AF2">
         <div class="research-value" style="color:#BF5AF2">94%</div>
         <div class="research-label">Quants Plan More Spend</div>
-        <div class="research-desc">94% of quant professionals plan to increase alt data budgets in 2025 per Lowenstein Sandler survey — demand is structural.</div>
+        <div class="research-desc">94% of quant professionals plan to increase alt data budgets in 2025 — demand is structural.</div>
       </div>
       <div class="research-card" style="border-top:3px solid #FF9F0A">
         <div class="research-value" style="color:#FF9F0A">$143B</div>
         <div class="research-label">Alt Data by 2031 (Global)</div>
-        <div class="research-desc">Global alternative data market projected at $143.87B by 2031. Asia-Pacific registering 44.92% CAGR — fastest region.</div>
+        <div class="research-desc">Global alternative data market projected at $143.87B by 2031. Asia-Pacific registering 44.92% CAGR.</div>
       </div>
     </div>
 
-    <!-- Why India is Unique -->
     <div class="grid-2">
       <div class="card">
         <div class="card-title">🇮🇳 Why India Has an Unfair Alt Data Advantage</div>
@@ -1514,7 +2091,6 @@ function renderResearch(c) {
       </div>
     </div>
 
-    <!-- Chart -->
     <div class="card">
       <div class="card-title">India Alt Data Market Growth Projection (2024–2033)</div>
       <div class="card-sub">IMARC Group data — $290M to $4.4B at 35.2% CAGR</div>
@@ -1524,42 +2100,24 @@ function renderResearch(c) {
 
   setTimeout(() => {
     const years = [2024,2025,2026,2027,2028,2029,2030,2031,2032,2033];
-    const base = 290.5;
-    const cagr = 0.352;
-    const vals = years.map((y,i) => +(base * Math.pow(1+cagr, i)).toFixed(0));
+    const base = 290.5, cagr = 0.352;
+    const vals = years.map((_,i) => +(base * Math.pow(1+cagr, i)).toFixed(0));
     charts.mktGrowth = new Chart(document.getElementById('mktGrowthChart'), {
-      type: 'bar',
-      data: {
-        labels: years,
-        datasets: [{
-          label:'India Alt Data Market ($M)',
-          data: vals,
-          backgroundColor: vals.map((_,i) => i < 2 ? '#0071E3' : 'rgba(0,113,227,0.4)'),
-          borderRadius: 6,
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` $${ctx.raw}M` } }
-        },
-        scales: {
-          x: { grid:{display:false}, ticks:{font:{size:10},color:'#AEAEB2'} },
-          y: { grid:{color:'#F5F5F7'}, ticks:{font:{size:10},color:'#AEAEB2', callback: v => `$${v}M`} }
-        }
-      }
+      type:'bar',
+      data:{labels:years,datasets:[{label:'India Alt Data Market ($M)',data:vals,backgroundColor:vals.map((_,i)=>i<2?'#0071E3':'rgba(0,113,227,0.4)'),borderRadius:6}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` $${ctx.raw}M`}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2',callback:v=>`$${v}M`}}}}
     });
   }, 50);
 }
 
-// ═══ 10-YEAR ROADMAP ═══
+// ══════════════════════════════════
+//  10-YEAR ROADMAP
+// ══════════════════════════════════
 function renderRoadmap(c) {
   c.innerHTML = `<div class="page">
     <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.8px;margin-bottom:5px">10-Year Strategic Roadmap</div>
     <div style="font-size:12.5px;color:#636366;margin-bottom:22px">Future-proofed product strategy to 2036 — built for India's next decade of data growth</div>
 
-    <!-- Phase Banner -->
     <div style="background:linear-gradient(135deg,#1A1A2E,#0F3460);border-radius:var(--radius);padding:22px 26px;margin-bottom:20px;color:white">
       <div style="display:flex;gap:0">
         ${[
@@ -1577,16 +2135,15 @@ function renderRoadmap(c) {
       </div>
     </div>
 
-    <!-- Detailed milestones -->
     <div class="grid-2">
       <div class="card">
         <div class="card-title">Near-Term Wins (2026–2027)</div>
         <div class="card-sub">Highest-impact improvements with clear execution path</div>
         ${[
-          {year:'Q2 2026',title:'Account Aggregator Deep Integration',desc:'Full Sahamati AA hub integration — add bank statement, insurance, MF signals to marketplace. Compliant consented data for credit intelligence.',color:'#0071E3'},
-          {year:'Q3 2026',title:'AI Signal Builder (Natural Language)',desc:'Let quant analysts describe a signal in plain English — AI builds it from available data sources. "Build a signal when GST surprise > 5% AND BFSI UPI spend accelerates."',color:'#BF5AF2'},
-          {year:'Q4 2026',title:'ONDC Commerce Intelligence Layer',desc:'Ingest ONDC network GMV data — first platform to offer real-time open commerce as an investable signal. Covers 7L+ merchants.',color:'#FF9F0A'},
-          {year:'Q1 2027',title:'Institutional API v2 with Webhooks',desc:'REST API + real-time webhooks for institutional quant desks. Enables direct integration into execution systems and research workflows.',color:'#30D158'},
+          {year:'Q2 2026',title:'Account Aggregator Deep Integration',desc:'Full Sahamati AA hub integration — add bank statement, insurance, MF signals to marketplace.',color:'#0071E3'},
+          {year:'Q3 2026',title:'AI Signal Builder (Natural Language)',desc:'Let quant analysts describe a signal in plain English — AI builds it from available data sources.',color:'#BF5AF2'},
+          {year:'Q4 2026',title:'ONDC Commerce Intelligence Layer',desc:'Ingest ONDC network GMV data — first platform to offer real-time open commerce as an investable signal.',color:'#FF9F0A'},
+          {year:'Q1 2027',title:'Institutional API v2 with Webhooks',desc:'REST API + real-time webhooks for institutional quant desks. Enables direct integration into execution systems.',color:'#30D158'},
         ].map(m=>`
         <div class="roadmap-item">
           <div class="roadmap-year" style="color:${m.color}">${m.year}</div>
@@ -1601,11 +2158,11 @@ function renderRoadmap(c) {
         <div class="card-title">10-Year Proof Factors</div>
         <div class="card-sub">Structural tailwinds that make NEXUS durable through 2036</div>
         ${[
-          {icon:'🇮🇳',title:'India DPI Expanding',desc:'India Stack (UPI, AA, ONDC, DPDP) is deepening. Each new DPI layer creates a new category of data signals — NEXUS\'s total addressable data grows with India.',score:98},
-          {icon:'🤖',title:'AI Amplifies Alt Data Value',desc:'Generative AI makes raw alt data more actionable — organizations using AI to process signals see 3x better alpha. NEXUS\'s AI layer becomes a compounding moat.',score:95},
-          {icon:'📋',title:'Regulatory Tailwind (SEBI)',desc:'SEBI\'s BRSR mandate, algorithmic trading regulations, and AI governance frameworks all create demand for compliant, structured signal data like NEXUS provides.',score:91},
-          {icon:'💼',title:'Quant Fund Growth in India',desc:'India\'s quant AUM growing 40%+ YoY. As discretionary managers systematize, demand for alt data goes from "experimental" to "core infrastructure."',score:88},
-          {icon:'🔐',title:'Compliance as Competitive Moat',desc:'DPDP Act 2023 raises the compliance bar significantly. NEXUS\'s early compliance architecture becomes a distribution advantage as new entrants struggle.',score:94},
+          {icon:'🇮🇳',title:'India DPI Expanding',desc:"India Stack (UPI, AA, ONDC, DPDP) is deepening. Each new DPI layer creates new data signal categories.",score:98},
+          {icon:'🤖',title:'AI Amplifies Alt Data Value',desc:"Organizations using AI to process signals see 3x better alpha. NEXUS's AI layer becomes a compounding moat.",score:95},
+          {icon:'📋',title:'Regulatory Tailwind (SEBI)',desc:"SEBI's BRSR mandate and AI governance frameworks all create demand for compliant, structured signal data.",score:91},
+          {icon:'💼',title:'Quant Fund Growth in India',desc:"India's quant AUM growing 40%+ YoY. As discretionary managers systematize, alt data demand becomes core infrastructure.",score:88},
+          {icon:'🔐',title:'Compliance as Competitive Moat',desc:"DPDP Act 2023 raises the compliance bar significantly. NEXUS's early compliance architecture is a distribution advantage.",score:94},
         ].map(m=>`
         <div style="display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(0,0,0,0.04)">
           <div style="width:34px;height:34px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${m.icon}</div>
@@ -1620,7 +2177,6 @@ function renderRoadmap(c) {
       </div>
     </div>
 
-    <!-- Revenue Projection -->
     <div class="card" style="margin-top:0">
       <div class="card-title">Revenue Trajectory Model (2025–2030)</div>
       <div class="card-sub">Conservative scenario based on 35% market CAGR and 2% market share capture</div>
@@ -1630,59 +2186,34 @@ function renderRoadmap(c) {
 
   setTimeout(() => {
     charts.rev = new Chart(document.getElementById('revChart'), {
-      type: 'bar',
-      data: {
-        labels: ['2025','2026','2027','2028','2029','2030'],
-        datasets: [
-          { label:'Data Revenue (₹Cr)', data:[8.2,15.4,27.8,46.1,72.3,108.9], backgroundColor:'rgba(0,113,227,0.7)', borderRadius:6, stack:'a' },
-          { label:'API & Licensing (₹Cr)', data:[0,2.1,5.8,12.4,22.7,38.2], backgroundColor:'rgba(191,90,242,0.7)', borderRadius:6, stack:'a' },
-          { label:'AI Copilot Revenue (₹Cr)', data:[0,0,3.2,8.6,16.4,29.1], backgroundColor:'rgba(48,209,88,0.7)', borderRadius:6, stack:'a' },
+      type:'bar',
+      data:{
+        labels:['2025','2026','2027','2028','2029','2030'],
+        datasets:[
+          {label:'Data Revenue (₹Cr)',data:[8.2,15.4,27.8,46.1,72.3,108.9],backgroundColor:'rgba(0,113,227,0.7)',borderRadius:6,stack:'a'},
+          {label:'API & Licensing (₹Cr)',data:[0,2.1,5.8,12.4,22.7,38.2],backgroundColor:'rgba(191,90,242,0.7)',borderRadius:6,stack:'a'},
+          {label:'AI Copilot Revenue (₹Cr)',data:[0,0,3.2,8.6,16.4,29.1],backgroundColor:'rgba(48,209,88,0.7)',borderRadius:6,stack:'a'},
         ]
       },
-      options: {
-        responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{ labels:{font:{size:10},boxWidth:10,padding:12} } },
-        scales:{ x:{stacked:true,grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}}, y:{stacked:true,grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2',callback:v=>`₹${v}Cr`}} }
-      }
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10,padding:12}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{stacked:true,grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2',callback:v=>`₹${v}Cr`}}}}
     });
   }, 50);
 }
 
 // ─── INIT ───
 (function init() {
-  renderPage('dashboard', document.getElementById('page-content').appendChild(Object.assign(document.createElement('div'), {id:'active-page'})));
+  NS.updateSidebarWidget();
 
-  // Init charts for dashboard
+  const content = document.getElementById('page-content');
+  const page = document.createElement('div');
+  page.id = 'active-page';
+  content.appendChild(page);
+  renderDashboard(page);
+
+  // Welcome toast after short delay
   setTimeout(() => {
-    const gCtx = document.getElementById('gstChart');
-    if (gCtx && !charts.gst) {
-      charts.gst = new Chart(gCtx, {
-        type:'bar', data:{ labels:gstData.map(d=>d.month), datasets:[
-          {label:'Expected',data:gstData.map(d=>d.expected),backgroundColor:'#E5E7EB',borderRadius:5},
-          {label:'Actual',data:gstData.map(d=>d.actual),backgroundColor:'#0071E3',borderRadius:5},
-        ]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}}}}
-      });
-    }
-    const uCtx = document.getElementById('upiChart');
-    if (uCtx && !charts.upi) {
-      charts.upi = new Chart(uCtx, {
-        type:'line', data:{ labels:upiData.map(d=>d.week), datasets:[
-          {label:'Retail',data:upiData.map(d=>d.retail),borderColor:'#0071E3',backgroundColor:'rgba(0,113,227,0.08)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
-          {label:'Food',data:upiData.map(d=>d.food),borderColor:'#30D158',backgroundColor:'rgba(48,209,88,0.08)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
-          {label:'Travel',data:upiData.map(d=>d.travel),borderColor:'#FF9F0A',backgroundColor:'rgba(255,159,10,0.06)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
-        ]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10,padding:10}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}},y:{grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}}}}
-      });
-    }
-    const sCtx = document.getElementById('sectorChart');
-    if (sCtx && !charts.sector) {
-      charts.sector = new Chart(sCtx, {
-        type:'bar', data:{ labels:['IT','BFSI','Pharma','FMCG','Infra','Auto'], datasets:[
-          {label:'Long %',data:[68,55,72,48,81,61],backgroundColor:'rgba(48,209,88,0.75)',borderRadius:4},
-          {label:'Short %',data:[32,45,28,52,19,39],backgroundColor:'rgba(255,69,58,0.75)',borderRadius:4},
-        ]}, options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},boxWidth:10,padding:10}}},scales:{x:{stacked:true,grid:{color:'#F5F5F7'},ticks:{font:{size:10},color:'#AEAEB2'}},y:{stacked:true,grid:{display:false},ticks:{font:{size:10},color:'#AEAEB2'}}}}
-      });
-    }
-  }, 100);
+    showToast('NEXUS Platform Ready', 'Agent cycle running · 47 signals live · 0 decay alerts', 'info', '⚡');
+  }, 1200);
 })();
 </script>
 </body>
